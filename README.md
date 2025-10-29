@@ -142,22 +142,8 @@ Cada nodo se identifica como `ns=X; s=Nombre`, donde `X` es el índice del names
 ## 🧾 Licencia
 
 Este proyecto se distribuye bajo la licencia **MIT**.  
-Puedes usarlo libremente con fines educativos o de desarrollo industrial.
+Puedes usarlo libremente con fines educativos.
 
----
-
-## ☁️ Cómo publicarlo en GitHub
-
-```bash
-git init
-git add .
-git commit -m "Ejemplo OPC UA: servidor y cliente en Python"
-git branch -M main
-git remote add origin https://github.com/<tu-usuario>/opcua-ejemplo.git
-git push -u origin main
-```
-
----
 
 ## 🌟 Créditos
 
