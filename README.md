@@ -1,29 +1,39 @@
-# Ejemplo OPC UA: Servidor y Cliente en Python
+# 🛰️ Ejemplo OPC UA — Servidor y Cliente en Python
 
-Este repositorio contiene un **servidor OPC UA** y un **cliente OPC UA** de ejemplo, escritos en Python, para demostrar cómo exponer una variable (`Temperature`) y cómo leer/escribirla desde un cliente.
+Este proyecto demuestra cómo **crear un servidor OPC UA** y un **cliente OPC UA** con Python utilizando la librería [FreeOPCUA](https://github.com/FreeOpcUa/python-opcua).  
+Aprenderás a **exponer variables desde un servidor** (por ejemplo, `Temperature`) y a **leer o escribir valores** desde un cliente remoto.
 
-## Estructura del repositorio
+---
 
-```text
+## 🧱 Estructura del proyecto
+
+```bash
 opcua-ejemplo/
-├─ src/
-│  ├─ servopcua.py
-│  └─ clientopcua.py
-├─ requirements.txt
-├─ .gitignore
-└─ LICENSE
+├── src/
+│   ├── servopcua.py      # Servidor OPC UA
+│   └── clientopcua.py    # Cliente OPC UA
+├── requirements.txt       # Dependencias
+├── .gitignore             # Ignora archivos de entorno/IDE
+└── LICENSE                # Licencia MIT
 ```
 
-## Requisitos
+---
 
-- Python 3.8+
-- Librería OPC UA para Python: `pip install opcua` (ver `requirements.txt`)
+## ⚙️ Requisitos previos
 
-> Nota: En algunos entornos la librería también se conoce como *FreeOPCUA (opcua)*.
+- 🐍 **Python 3.8+**
+- 📦 Instalar librerías necesarias:
 
-## Cómo correr el **servidor**
+```bash
+pip install -r requirements.txt
+```
 
-1. Crear y activar un entorno virtual (opcional pero recomendado):
+---
+
+## 🚀 Cómo ejecutar el **servidor**
+
+1. **Crea y activa un entorno virtual (opcional pero recomendado):**
+
    ```bash
    python -m venv .venv
    # Windows
@@ -31,65 +41,125 @@ opcua-ejemplo/
    # Linux/Mac
    source .venv/bin/activate
    ```
-2. Instalar dependencias:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Ejecutar el servidor:
+
+2. **Ejecuta el servidor:**
+
    ```bash
    python src/servopcua.py
    ```
-   Deberías ver en consola algo como:
+
+   Verás algo como:
+
    ```
-   Servidor OPC UA corriendo en: opc.tcp://0.0.0.0:4841/serveropcua/
+   Servidor OPC UA corriendo en opc.tcp://0.0.0.0:4841/serveropcua/
    ```
 
-## Cómo correr el **cliente**
+   👉 Este servidor crea un objeto `Sensor1` con la variable `Temperature`, que se puede leer y modificar desde un cliente.
 
-1. Ajusta la IP/endpoint en `src/clientopcua.py` si tu servidor no corre en la misma máquina:
+---
+
+## 🔗 Cómo ejecutar el **cliente**
+
+1. Ajusta la IP de conexión en `src/clientopcua.py` si el servidor está en otra máquina:
+
    ```python
-   IPSERVIDOR = "10.10.11.137"   # cámbialo por la IP de tu servidor
-   ENDPOINT   = f"opc.tcp://{{IPSERVIDOR}}:4841/serveropcua/"
+   IPSERVIDOR = "192.168.1.100"  # IP de tu servidor
+   ENDPOINT   = f"opc.tcp://{IPSERVIDOR}:4841/serveropcua/"
    ```
+
 2. Ejecuta el cliente:
+
    ```bash
    python src/clientopcua.py
    ```
-   El cliente:
-   - Se conectará al endpoint.
-   - Buscará el índice de *namespace* correspondiente al URI del servidor.
-   - Navegará hasta `Sensor1/Temperature`.
-   - Leerá el valor actual y luego **escribirá** nuevos valores (como `Double`).
 
-## Explicación rápida del código
+   🧭 El cliente:
+   - Se conecta al endpoint del servidor.
+   - Busca el *namespace* correspondiente.
+   - Accede al objeto `Sensor1` y su variable `Temperature`.
+   - Lee y **escribe** nuevos valores cada cierto tiempo.
 
-### Servidor (`src/servopcua.py`)
-- Define el **endpoint** `opc.tcp://0.0.0.0:4841/serveropcua/` para escuchar en todas las interfaces.
-- Registra un *namespace* (URI) único para tus nodos.
-- Crea el objeto `Sensor1` y la variable `Temperature` inicializada en 25, marcándola como **writable**.
-- Inicia el servidor y entra en un bucle donde imprime el valor actual.
+---
 
-Puntos clave:
-- `server.register_namespace(URI)` devuelve el **índice de namespace** (`idx`) para etiquetar tus nodos.
-- `add_object` y `add_variable` crean nodos bajo el árbol `Objects`.
-- `temperature.set_writable()` permite que los clientes escriban el valor.
+## 🧠 Explicación técnica
 
-### Cliente (`src/clientopcua.py`)
+### 🖥️ Servidor (`src/servopcua.py`)
+
+- Configura el endpoint `opc.tcp://0.0.0.0:4841/serveropcua/`
+- Registra un *namespace* personalizado:
+  ```python
+  uri = "http://examples.freeopcua.github.io"
+  idx = server.register_namespace(uri)
+  ```
+- Crea:
+  - Un objeto `Sensor1`
+  - Una variable `Temperature = 25` (marcada como *writable*)
+
+🔁 Luego entra en un bucle donde imprime el valor de temperatura cada 5 segundos.
+
+---
+
+### 💻 Cliente (`src/clientopcua.py`)
+
 - Se conecta al endpoint del servidor.
-- Obtiene el **namespace array** para localizar el índice del URI del servidor.
-- Desde `Objects`, navega a `Sensor1` y su variable `Temperature`.
-- Lee el valor actual y escribe periódicamente nuevos valores como `ua.Variant(Double)` para robustez de tipo.
+- Usa `get_namespace_array()` para identificar el índice del namespace (`idx`).
+- Navega hasta `Sensor1 → Temperature`.
+- Escribe valores con tipo `ua.Variant(Double)` para evitar errores de tipo.
 
-Puntos clave:
-- `client.get_namespace_array()` devuelve un arreglo de URIs; se usa `index(SERVER_URI)` para hallar el `idx` correcto.
-- `get_objects_node().get_child([f"{{idx}}:Sensor1"])` y luego `.get_child([f"{{idx}}:Temperature"])` navegan sin incluir `0:Objects` (ya estás allí).
-- Si el tipo de dato no coincide, usa `ua.Variant(valor, ua.VariantType.Double)`.
+Ejemplo de escritura segura:
+```python
+temperature.set_value(ua.Variant(30.5, ua.VariantType.Double))
+```
 
-## Solución de problemas
+---
 
-- **BadNoMatch**: la ruta de navegación no coincide. Verifica el `idx` y no incluyas `0:Objects` si ya partiste de `get_objects_node()`.
-- **BadTypeMismatch**: al escribir, usa `ua.Variant(..., ua.VariantType.Double)` para asegurar el tipo.
-- **Conexión rechazada**: confirma IP, puerto (4841) y firewall. Si el servidor corre en otra máquina, usa su IP real en el cliente.
-- **Namespaces**: recuerda que `ns=0` es estándar OPC UA y tus nodos suelen estar en `ns>=2`.
+## 🧩 ¿Qué son los *namespaces*?
 
-**Licencia:** MIT
+Los *namespaces* sirven para **diferenciar nodos** creados por distintos fabricantes o módulos.  
+Cada nodo se identifica como `ns=X; s=Nombre`, donde `X` es el índice del namespace.
+
+| Namespace | Descripción |
+|------------|--------------|
+| `ns=0` | Estándar OPC UA |
+| `ns=1` | Servidor interno |
+| `ns>=2` | Nodos definidos por el usuario o fabricante |
+
+👉 En este ejemplo, tus nodos (`Sensor1`, `Temperature`) están en el namespace con URI `http://examples.freeopcua.github.io` (generalmente `ns=2`).
+
+---
+
+## 🧰 Solución de problemas
+
+| Error | Causa probable | Solución |
+|-------|----------------|-----------|
+| **BadNoMatch** | Ruta de nodo incorrecta | Verifica que no incluyas `"0:Objects"` si ya estás en `get_objects_node()` |
+| **BadTypeMismatch** | Tipo de valor incompatible | Usa `ua.Variant(valor, ua.VariantType.Double)` |
+| **Connection Refused** | IP o puerto incorrecto | Revisa firewall y que el servidor esté activo |
+| **Namespace incorrecto** | `idx` diferente entre cliente y servidor | Usa `client.get_namespace_array()` para detectarlo dinámicamente |
+
+---
+
+## 🧾 Licencia
+
+Este proyecto se distribuye bajo la licencia **MIT**.  
+Puedes usarlo libremente con fines educativos o de desarrollo industrial.
+
+---
+
+## ☁️ Cómo publicarlo en GitHub
+
+```bash
+git init
+git add .
+git commit -m "Ejemplo OPC UA: servidor y cliente en Python"
+git branch -M main
+git remote add origin https://github.com/<tu-usuario>/opcua-ejemplo.git
+git push -u origin main
+```
+
+---
+
+## 🌟 Créditos
+
+Proyecto creado para fines educativos y demostrativos sobre el protocolo **OPC UA** con Python.  
+Inspirado en los ejemplos de [FreeOPCUA](https://github.com/FreeOpcUa/python-opcua).
