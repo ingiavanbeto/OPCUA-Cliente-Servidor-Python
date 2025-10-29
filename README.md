@@ -92,18 +92,4 @@ Puntos clave:
 - **Conexión rechazada**: confirma IP, puerto (4841) y firewall. Si el servidor corre en otra máquina, usa su IP real en el cliente.
 - **Namespaces**: recuerda que `ns=0` es estándar OPC UA y tus nodos suelen estar en `ns>=2`.
 
-## Publicar en GitHub
-
-Desde la carpeta `opcua-ejemplo/`:
-```bash
-git init
-git add .
-git commit -m "Ejemplo OPC UA: servidor y cliente en Python"
-git branch -M main
-git remote add origin https://github.com/<tu-usuario>/opcua-ejemplo.git
-git push -u origin main
-```
-
----
-
 **Licencia:** MIT
